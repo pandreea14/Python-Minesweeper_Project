@@ -1,9 +1,20 @@
+"""
+MineSweeper Game Implementation
+
+Implementarea UI-ului a fost facuta cu ajutorul Tkinter.
+Contine o tabla de joc (matrice), timer, buton pentru selectarea bombelor.
+"""
+
 import tkinter as tk
 import random
 from collections import deque
 
-
 class Minesweeper:
+    """
+    Clasa Minesweeper care se ocupa de setup-ul jocului, plasarea bombelor,
+    interactiunile cu userul(selectarea celulelor), timpul ramas si
+    gestioneaza finalul jocului
+    """
     def __init__(self, master, rows=10, cols=10, mines=15, time_limit=100):
         """
         :param master (tk.Tk): Tkinter window root
@@ -36,12 +47,13 @@ class Minesweeper:
 
     def initialize_board(self):
         """
-        :return: Intai adaug zero-uri in locuri random pe tabla de joc
+        :return: Intai adaug zero-uri intr-o matrice care va fi tabla de joc
         """
         self.board = [[0 for _ in range(self.cols)] for _ in range(self.rows)]
 
     def place_mines(self):
         """
+        Bombele sunt notate cu -1 in prima faza
         :return: Adaug bombe aleatoriu pe tabla si incrementez casutele adiacente
         """
         mines_placed = 0
@@ -66,6 +78,7 @@ class Minesweeper:
 
     def toggle_mark_flag(self):
         """
+        Marcarea celulelor cu bomba
         :return: Apasarea butonului de setat bombe te tabla de joc
         """
         self.mark_flag = not self.mark_flag
@@ -93,58 +106,65 @@ class Minesweeper:
                 self.reveal_cell(row, col)
 
     def create_ui(self):
-       screen_width = self.master.winfo_screenwidth()
-       screen_height = self.master.winfo_screenheight()
+        """
+        :return: UI-ul jocului cu maxim 20 de linii si 30 de coloane pentru a se potrivi in ecran
+        """
+        screen_width = self.master.winfo_screenwidth()
+        screen_height = self.master.winfo_screenheight()
 
-       max_cols = 30
-       max_rows = 20
-       self.rows = min(self.rows, max_rows)
-       self.cols = min(self.cols, max_cols)
-       max_board_width = screen_width - 100
-       max_board_height = screen_height - 100
-       max_cell_size_width = max_board_width // self.cols
-       max_cell_size_height = max_board_height // self.rows
-       cell_size = min(50, max_cell_size_width, max_cell_size_height)
+        max_cols = 30
+        max_rows = 20
+        self.rows = min(self.rows, max_rows)
+        self.cols = min(self.cols, max_cols)
+        max_board_width = screen_width - 100
+        max_board_height = screen_height - 100
+        max_cell_size_width = max_board_width // self.cols
+        max_cell_size_height = max_board_height // self.rows
+        cell_size = min(50, max_cell_size_width, max_cell_size_height)
 
-       window_width = self.cols * cell_size + 100
-       window_height = self.rows * cell_size + 100
-       x_position = (screen_width - window_width) // 2
-       y_position = (screen_height - window_height) // 2
+        window_width = self.cols * cell_size + 100
+        window_height = self.rows * cell_size + 100
+        x_position = (screen_width - window_width) // 2
+        y_position = (screen_height - window_height) // 2
 
-       self.master.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
-       self.master.resizable(False, False)
+        self.master.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
+        self.master.resizable(False, False)
 
-       frame = tk.Frame(self.master, bg="white")
-       frame.pack(fill=tk.BOTH, expand=True)
+        frame = tk.Frame(self.master, bg="white")
+        frame.pack(fill=tk.BOTH, expand=True)
 
-       self.timer_label = tk.Label(frame, text=f"Time: {self.remaining_time} s", font=("Arial", 14))
-       self.timer_label.pack(pady=10)
+        self.timer_label = tk.Label(
+            frame,
+            text=f"Time: {self.remaining_time} s",
+            font=("Arial", 14)
+        )
+        self.timer_label.pack(pady=10)
 
-       self.mark_button = tk.Button(
-           frame, text="Bomb (B)", bg="pink", command=self.toggle_mark_flag
-       )
-       self.mark_button.pack(pady=10)
+        self.mark_button = tk.Button(
+            frame, text="Bomb (B)", bg="pink", command=self.toggle_mark_flag
+        )
+        self.mark_button.pack(pady=10)
 
-       board_frame = tk.Frame(frame, bg="lightgray")
-       board_frame.pack(pady=10)
+        board_frame = tk.Frame(frame, bg="lightgray")
+        board_frame.pack(pady=10)
 
-       self.buttons = []
-       for row in range(self.rows):
-           button_row = []
-           for col in range(self.cols):
-               button = tk.Button(
-                   board_frame,
-                   text="",
-                   width=cell_size // 10,
-                   height=cell_size // 20,
-                   font=("Arial", max(8, cell_size // 5)),
-                   command=lambda r=row, c=col: self.handle_click(r, c),
-               )
-               button.grid(row=row, column=col, padx=1, pady=1)
-               button_row.append(button)
-           self.buttons.append(button_row)
+        self.buttons = []
+        for row in range(self.rows):
+            button_row = []
+            for col in range(self.cols):
+                button = tk.Button(
+                    board_frame,
+                    text="",
+                    width=cell_size // 10,
+                    height=cell_size // 20,
+                    font=("Arial", max(8, cell_size // 5)),
+                    command=lambda r=row, c=col: self.handle_click(r, c),
+                )
+                button.grid(row=row, column=col, padx=1, pady=1)
+                button_row.append(button)
+            self.buttons.append(button_row)
 
-       self.update_timer()
+        self.update_timer()
 
 
     def update_timer(self):
@@ -250,15 +270,13 @@ class Minesweeper:
 
     def end_game(self, victory, timeout):
         """
-        :return:
+        :return: dezactiveaza butoanele ramase si afiseaza restul bombelor,
+        mai apoi redirectioneaza catre pagina de restart dupa 3 secunde
         """
         self.game_active = False
         for row in range(self.rows):
             for col in range(self.cols):
                 self.buttons[row][col].config(state="disabled")
-                if self.buttons[row][col] == -1:
-                    if self.buttons[row][col]["text"] != "B":
-                        self.buttons[row][col].config(text="B", bg="#7a0f18", fg="white")
         if victory:
             print("You win!")
         else:
@@ -268,7 +286,8 @@ class Minesweeper:
 
     def final(self, timeout, victory):
         """
-        :param timeout: true sau false in functie de timpul ramas - daca e true inseamna ca s-a pierdut deoarece a expirat timpul
+        :param timeout: true sau false in functie de timpul ramas
+            daca e true inseamna ca s-a pierdut deoarece a expirat timpul
         :param victory: true daca jucatorul a castigat, false daca a pierdut
         :return: un canvas overlay cu mesaj corespunzator cu posibilitatea de restart a jocului
         """
@@ -288,17 +307,17 @@ class Minesweeper:
                 text="YOU WON :)", fill="red", font=("Arial", 50, "bold")
             )
         elif timeout:
-                overlay.create_text(
-                    self.master.winfo_width() // 2,
-                    self.master.winfo_height() // 2 - 20,
-                    text="TIME'S UP! GAME OVER", fill="red", font=("Arial", 30, "bold")
-                )
+            overlay.create_text(
+                self.master.winfo_width() // 2,
+                self.master.winfo_height() // 2 - 20,
+                text="TIME'S UP! GAME OVER", fill="red", font=("Arial", 30, "bold")
+            )
         else:
-                overlay.create_text(
-                    self.master.winfo_width() // 2,
-                    self.master.winfo_height() // 2 - 20,
-                    text="YOU LOST :(", fill="red", font=("Arial", 50, "bold")
-                )
+            overlay.create_text(
+                self.master.winfo_width() // 2,
+                self.master.winfo_height() // 2 - 20,
+                text="YOU LOST :(", fill="red", font=("Arial", 50, "bold")
+            )
 
         overlay.create_text(
             self.master.winfo_width() // 2,
@@ -322,6 +341,10 @@ class Minesweeper:
 
 if __name__ == "__main__":
     def start_game():
+        """
+        :return: transmite valorile de la fereastra de setup
+        apeleaza clasa Minesweeper pentru a genera interfata de joc si logica
+        """
         rows, cols, mines, time_limit = (
             int(rows_entry.get()),
             int(cols_entry.get()),
@@ -349,7 +372,11 @@ if __name__ == "__main__":
         ).grid(row=idx + 1, column=0, pady=5, padx=10)
 
     rows_entry, cols_entry, mines_entry, time_entry = (tk.Entry(frame) for _ in range(4))
-    for idx, entry, default in zip(range(4), [rows_entry, cols_entry, mines_entry, time_entry], ["10", "10", "15", "100"]):
+    for idx, entry, default in zip(
+            range(4),
+            [rows_entry, cols_entry, mines_entry, time_entry],
+            ["10", "10", "15", "100"]
+    ):
         entry.grid(row=idx + 1, column=1, pady=5, padx=10)
         entry.insert(0, default)
 
@@ -357,5 +384,4 @@ if __name__ == "__main__":
         frame, text="Start Game", font=("Arial", 15), fg="black", bg="#d49fc3",
         activebackground="pink", command=start_game
     ).grid(row=5, column=0, columnspan=2, pady=20)
-
     root.mainloop()
