@@ -195,7 +195,6 @@ class Minesweeper:
                 fg="black"
             )
             self.master.update_idletasks()
-
             self.end_game(False, False)
         else:
             self.uncover_cells(row, col)
@@ -250,7 +249,6 @@ class Minesweeper:
             for col in range(self.cols):
                 if self.board[row][col] != -1 and self.buttons[row][col]["state"] != "disabled":
                     return False
-        self.reveal_all_bombs()
         return True
 
     def reveal_all_bombs(self):
@@ -259,14 +257,13 @@ class Minesweeper:
         """
         for row in range(self.rows):
             for col in range(self.cols):
-                if self.board[row][col] == -1 and self.buttons[row][col]["text"] != "B":
+                if self.board[row][col] == -1 and self.buttons[row][col]["text"] != "B" and self.buttons[row][col]["text"] != "X_X":
                     self.buttons[row][col].config(
                         text="X_X",
                         bg="yellow",
                         fg="red",
                         state="disabled"
                     )
-        self.master.update_idletasks() # executa imediat actualizarea UI-ului
 
     def end_game(self, victory, timeout):
         """
@@ -282,6 +279,7 @@ class Minesweeper:
         else:
             print("You lose!")
         self.reveal_all_bombs()
+        self.master.update_idletasks()
         self.master.after(3000, self.final(timeout, victory))
 
     def final(self, timeout, victory):
@@ -340,6 +338,9 @@ class Minesweeper:
         Minesweeper(new_window, self.rows, self.cols, self.mines, self.time_limit)
 
 if __name__ == "__main__":
+    """
+    Functia main pentru a rula jocul minesweeper
+    """
     def start_game():
         """
         :return: transmite valorile de la fereastra de setup
